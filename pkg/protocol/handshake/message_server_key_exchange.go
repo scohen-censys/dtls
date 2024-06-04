@@ -6,10 +6,12 @@ package handshake
 import (
 	"encoding/binary"
 
-	"github.com/pion/dtls/v2/internal/ciphersuite/types"
-	"github.com/pion/dtls/v2/pkg/crypto/elliptic"
-	"github.com/pion/dtls/v2/pkg/crypto/hash"
-	"github.com/pion/dtls/v2/pkg/crypto/signature"
+	"github.com/scohen-censys/dtls/v2/internal/ciphersuite/types"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/elliptic"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/hash"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/signature"
+	zjson "github.com/zmap/zcrypto/json"
+	"github.com/zmap/zcrypto/tls"
 )
 
 // MessageServerKeyExchange supports ECDH and PSK
@@ -145,4 +147,24 @@ func (m *MessageServerKeyExchange) Unmarshal(data []byte) error {
 	}
 	m.Signature = append([]byte{}, data[offset:offset+signatureLength]...)
 	return nil
+}
+
+func (m *MessageServerKeyExchange) MakeLog() *tls.ServerKeyExchange {
+	ret := &tls.ServerKeyExchange{}
+
+	ret.ECDHParams = new(zjson.ECDHParams)
+	ret.ECDHParams.TLSCurveID = zjson.TLSCurveID(m.NamedCurve)
+	ret.ECDHParams.ServerPublic = &zjson.ECPoint{}
+	ret.Signature = &tls.DigitalSignature{
+		Raw:   append([]byte{}, m.Signature...),
+		Type:  "",
+		Valid: false,
+		SigHashExtension: &tls.SignatureAndHash{
+			Signature: uint8(m.SignatureAlgorithm),
+			Hash:      uint8(m.HashAlgorithm),
+		},
+	}
+	ret.SignatureError = ""
+
+	return ret
 }

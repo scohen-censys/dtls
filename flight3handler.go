@@ -7,17 +7,18 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/pion/dtls/v2/internal/ciphersuite/types"
-	"github.com/pion/dtls/v2/pkg/crypto/elliptic"
-	"github.com/pion/dtls/v2/pkg/crypto/prf"
-	"github.com/pion/dtls/v2/pkg/protocol"
-	"github.com/pion/dtls/v2/pkg/protocol/alert"
-	"github.com/pion/dtls/v2/pkg/protocol/extension"
-	"github.com/pion/dtls/v2/pkg/protocol/handshake"
-	"github.com/pion/dtls/v2/pkg/protocol/recordlayer"
+	"github.com/scohen-censys/dtls/v2/internal/ciphersuite/types"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/elliptic"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/prf"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/alert"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/extension"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/handshake"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/recordlayer"
 )
 
-func flight3Parse(ctx context.Context, c flightConn, state *State, cache *handshakeCache, cfg *handshakeConfig) (flightVal, *alert.Alert, error) { //nolint:gocognit
+func flight3Parse( //nolint:gocognit
+ctx context.Context, c flightConn, state *State, cache *handshakeCache, cfg *handshakeConfig) (flightVal, *alert.Alert, error) {
 	// Clients may receive multiple HelloVerifyRequest messages with different cookies.
 	// Clients SHOULD handle this by sending a new ClientHello with a cookie in response
 	// to the new HelloVerifyRequest. RFC 6347 Section 4.2.1

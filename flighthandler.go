@@ -6,7 +6,7 @@ package dtls
 import (
 	"context"
 
-	"github.com/pion/dtls/v2/pkg/protocol/alert"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/alert"
 )
 
 // Parse received handshakes and return next flightVal

@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pion/dtls/v2/pkg/protocol"
-	"github.com/pion/dtls/v2/pkg/protocol/recordlayer"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/recordlayer"
 )
 
 func TestGenerateAEADAdditionalDataCID(t *testing.T) {

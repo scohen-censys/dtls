@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pion/dtls/v2"
-	"github.com/pion/dtls/v2/pkg/crypto/selfsign"
-	dtlsnet "github.com/pion/dtls/v2/pkg/net"
 	transportTest "github.com/pion/transport/v3/test"
+	"github.com/scohen-censys/dtls/v2"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/selfsign"
+	dtlsnet "github.com/scohen-censys/dtls/v2/pkg/net"
 )
 
 const (

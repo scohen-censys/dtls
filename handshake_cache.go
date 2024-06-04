@@ -6,8 +6,8 @@ package dtls
 import (
 	"sync"
 
-	"github.com/pion/dtls/v2/pkg/crypto/prf"
-	"github.com/pion/dtls/v2/pkg/protocol/handshake"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/prf"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/handshake"
 )
 
 type handshakeCacheItem struct {

@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pion/dtls/v2/pkg/crypto/elliptic"
-	"github.com/pion/dtls/v2/pkg/crypto/signaturehash"
-	"github.com/pion/dtls/v2/pkg/protocol/alert"
-	"github.com/pion/dtls/v2/pkg/protocol/handshake"
 	"github.com/pion/logging"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/elliptic"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/signaturehash"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/alert"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/handshake"
 )
 
 // [RFC6347 Section-4.2.4]

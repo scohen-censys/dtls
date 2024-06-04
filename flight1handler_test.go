@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pion/dtls/v2/internal/ciphersuite"
-	"github.com/pion/dtls/v2/pkg/protocol/alert"
-	"github.com/pion/dtls/v2/pkg/protocol/handshake"
 	"github.com/pion/logging"
 	"github.com/pion/transport/v3/test"
+	"github.com/scohen-censys/dtls/v2/internal/ciphersuite"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/alert"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/handshake"
 )
 
 type flight1TestMockFlightConn struct{}

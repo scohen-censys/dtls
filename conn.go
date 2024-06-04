@@ -14,17 +14,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pion/dtls/v2/internal/closer"
-	"github.com/pion/dtls/v2/pkg/crypto/elliptic"
-	"github.com/pion/dtls/v2/pkg/crypto/signaturehash"
-	"github.com/pion/dtls/v2/pkg/protocol"
-	"github.com/pion/dtls/v2/pkg/protocol/alert"
-	"github.com/pion/dtls/v2/pkg/protocol/handshake"
-	"github.com/pion/dtls/v2/pkg/protocol/recordlayer"
 	"github.com/pion/logging"
 	"github.com/pion/transport/v3/deadline"
 	"github.com/pion/transport/v3/netctx"
 	"github.com/pion/transport/v3/replaydetector"
+	"github.com/scohen-censys/dtls/v2/internal/closer"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/elliptic"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/signaturehash"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/alert"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/handshake"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/recordlayer"
+	"github.com/zmap/zcrypto/tls"
 )
 
 const (
@@ -79,7 +80,8 @@ type Conn struct {
 	readDeadline  *deadline.Deadline
 	writeDeadline *deadline.Deadline
 
-	log logging.LeveledLogger
+	log          logging.LeveledLogger
+	handshakeLog tls.ServerHandshake
 
 	reading               chan struct{}
 	handshakeRecv         chan chan struct{}
@@ -1208,4 +1210,75 @@ func (c *Conn) SetWriteDeadline(t time.Time) error {
 	c.writeDeadline.Set(t)
 	// Write deadline is also fully managed by this layer.
 	return nil
+}
+
+func (c *Conn) GetHandshakeLog() *tls.ServerHandshake {
+	hsLog := &tls.ServerHandshake{}
+	s := c.fsm
+	_, serverMsgs, ok := s.cache.fullPullMap(1, s.state.cipherSuite,
+		handshakeCachePullRule{handshake.TypeServerHello, s.cfg.initialEpoch, false, true},
+		handshakeCachePullRule{handshake.TypeCertificate, s.cfg.initialEpoch, false, true},
+		handshakeCachePullRule{handshake.TypeServerKeyExchange, s.cfg.initialEpoch, false, true},
+		handshakeCachePullRule{handshake.TypeCertificateRequest, s.cfg.initialEpoch, false, true},
+		handshakeCachePullRule{handshake.TypeServerHelloDone, s.cfg.initialEpoch, false, true},
+		handshakeCachePullRule{handshake.TypeFinished, s.cfg.initialEpoch + 1, false, true},
+	)
+	if !ok {
+		return nil
+	}
+	_, clientMsgs, ok := s.cache.fullPullMap(1, s.state.cipherSuite,
+		handshakeCachePullRule{handshake.TypeClientHello, s.cfg.initialEpoch, true, true},
+		handshakeCachePullRule{handshake.TypeCertificate, s.cfg.initialEpoch, true, true},
+		handshakeCachePullRule{handshake.TypeClientKeyExchange, s.cfg.initialEpoch, true, true},
+		handshakeCachePullRule{handshake.TypeCertificateVerify, s.cfg.initialEpoch, true, true},
+		handshakeCachePullRule{handshake.TypeFinished, s.cfg.initialEpoch + 1, true, true},
+	)
+	if !ok {
+		return nil
+	}
+
+	for _, v := range clientMsgs {
+		switch m := v.(type) {
+		case *handshake.MessageClientHello:
+			hsLog.ClientHello = m.MakeLog()
+		case *handshake.MessageClientKeyExchange:
+			hsLog.ClientKeyExchange = m.MakeLog()
+		case *handshake.MessageFinished:
+			hsLog.ClientFinished = m.MakeLog()
+		case *handshake.MessageCertificateVerify: // unimplemented
+		case *handshake.MessageCertificate: // unimplmented
+		default:
+			panic("Unexpected/Unknown message type: " + fmt.Sprintf("%T", v))
+		}
+	}
+	for _, v := range serverMsgs {
+		switch m := v.(type) {
+		case *handshake.MessageServerHello:
+			hsLog.ServerHello = m.MakeLog()
+		case *handshake.MessageCertificate:
+			hsLog.ServerCertificates = m.MakeLog()
+		case *handshake.MessageServerKeyExchange:
+			hsLog.ServerKeyExchange = m.MakeLog()
+		case *handshake.MessageFinished:
+			hsLog.ServerFinished = m.MakeLog()
+		case *handshake.MessageServerHelloDone: // Not needed
+		case *handshake.MessageCertificateRequest: // unimplemented
+		default:
+			panic("Unexpected/Unknown message type: " + fmt.Sprintf("%T", v))
+		}
+	}
+
+	hsLog.KeyMaterial = &tls.KeyMaterial{
+		MasterSecret: &tls.MasterSecret{
+			Value:  c.state.masterSecret,
+			Length: len(c.state.masterSecret),
+		},
+		PreMasterSecret: &tls.PreMasterSecret{
+			Value:  c.state.preMasterSecret,
+			Length: len(c.state.preMasterSecret),
+		},
+	}
+
+	hsLog.SessionTicket = nil // > TLSv1.3 only
+	return hsLog
 }

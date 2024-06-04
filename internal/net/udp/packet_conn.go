@@ -24,9 +24,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	idtlsnet "github.com/pion/dtls/v2/internal/net"
-	dtlsnet "github.com/pion/dtls/v2/pkg/net"
 	"github.com/pion/transport/v3/deadline"
+	idtlsnet "github.com/scohen-censys/dtls/v2/internal/net"
+	dtlsnet "github.com/scohen-censys/dtls/v2/pkg/net"
 )
 
 const (
