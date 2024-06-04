@@ -9,8 +9,8 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"github.com/pion/dtls/v2/pkg/crypto/elliptic"
-	"github.com/pion/dtls/v2/pkg/crypto/hash"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/elliptic"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/hash"
 )
 
 // nolint: gosec

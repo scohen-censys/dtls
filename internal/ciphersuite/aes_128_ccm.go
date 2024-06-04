@@ -4,8 +4,8 @@
 package ciphersuite
 
 import (
-	"github.com/pion/dtls/v2/pkg/crypto/ciphersuite"
-	"github.com/pion/dtls/v2/pkg/crypto/clientcertificate"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/ciphersuite"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/clientcertificate"
 )
 
 // Aes128Ccm is a base class used by multiple AES-CCM Ciphers

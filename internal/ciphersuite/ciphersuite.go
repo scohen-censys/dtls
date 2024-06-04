@@ -8,11 +8,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pion/dtls/v2/internal/ciphersuite/types"
-	"github.com/pion/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/internal/ciphersuite/types"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
 )
 
-var errCipherSuiteNotInit = &protocol.TemporaryError{Err: errors.New("CipherSuite has not been initialized")} //nolint:goerr113
+var errCipherSuiteNotInit = //nolint:goerr113
+&protocol.TemporaryError{Err: errors.New("CipherSuite has not been initialized")}
 
 // ID is an ID for our supported CipherSuites
 type ID uint16

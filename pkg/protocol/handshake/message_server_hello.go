@@ -6,8 +6,9 @@ package handshake
 import (
 	"encoding/binary"
 
-	"github.com/pion/dtls/v2/pkg/protocol"
-	"github.com/pion/dtls/v2/pkg/protocol/extension"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/extension"
+	"github.com/zmap/zcrypto/tls"
 )
 
 // MessageServerHello is sent in response to a ClientHello
@@ -119,4 +120,41 @@ func (m *MessageServerHello) Unmarshal(data []byte) error {
 	}
 	m.Extensions = extensions
 	return nil
+}
+
+func (m *MessageServerHello) MakeLog() *tls.ServerHello {
+	ret := &tls.ServerHello{}
+
+	ret.Version = tls.TLSVersion((uint16(m.Version.Major) << 8) | uint16(m.Version.Minor))
+
+	ret.Random = make([]byte, RandomLength)
+	binary.BigEndian.PutUint32(ret.Random[:4], uint32(m.Random.GMTUnixTime.Unix()))
+	copy(ret.Random[4:], m.Random.RandomBytes[:])
+
+	ret.SessionID = make([]byte, len(m.SessionID))
+	copy(ret.SessionID, m.SessionID)
+
+	ret.CipherSuite = tls.CipherSuiteID(*m.CipherSuiteID)
+
+	ret.CompressionMethod = uint8(m.CompressionMethod.ID)
+
+	for _, anyExt := range m.Extensions {
+		switch e := anyExt.(type) {
+		case *extension.ALPN:
+			if len(e.ProtocolNameList) > 0 {
+				ret.AlpnProtocol = e.ProtocolNameList[0]
+			}
+		case *extension.RenegotiationInfo:
+			ret.SecureRenegotiation = true
+		case *extension.UseExtendedMasterSecret:
+			ret.ExtendedMasterSecret = e.Supported
+
+		// unimplemented in zcrypto
+		case *extension.ConnectionID:
+		case *extension.SupportedPointFormats:
+		default:
+		}
+
+	}
+	return ret
 }

@@ -6,7 +6,9 @@ package handshake
 import (
 	"encoding/binary"
 
-	"github.com/pion/dtls/v2/internal/ciphersuite/types"
+	"github.com/scohen-censys/dtls/v2/internal/ciphersuite/types"
+	zjson "github.com/zmap/zcrypto/json"
+	"github.com/zmap/zcrypto/tls"
 )
 
 // MessageClientKeyExchange is a DTLS Handshake Message
@@ -78,4 +80,13 @@ func (m *MessageClientKeyExchange) Unmarshal(data []byte) error {
 	}
 
 	return nil
+}
+
+func (m *MessageClientKeyExchange) MakeLog() *tls.ClientKeyExchange {
+	ret := new(tls.ClientKeyExchange)
+	// zcrypto's TLS currently does not give any more info than this
+	ret.ECDHParams = &zjson.ECDHParams{
+		ServerPublic: &zjson.ECPoint{},
+	}
+	return ret
 }

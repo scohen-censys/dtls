@@ -6,8 +6,9 @@ package handshake
 import (
 	"encoding/binary"
 
-	"github.com/pion/dtls/v2/pkg/protocol"
-	"github.com/pion/dtls/v2/pkg/protocol/extension"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/extension"
+	"github.com/zmap/zcrypto/tls"
 )
 
 /*
@@ -138,4 +139,64 @@ func (m *MessageClientHello) Unmarshal(data []byte) error {
 	}
 	m.Extensions = extensions
 	return nil
+}
+
+func (m *MessageClientHello) MakeLog() *tls.ClientHello {
+	ret := &tls.ClientHello{}
+
+	ret.Version = tls.TLSVersion((uint16(m.Version.Major) << 8) | uint16(m.Version.Minor))
+
+	ret.Random = make([]byte, RandomLength)
+	binary.BigEndian.PutUint32(ret.Random[:4], uint32(m.Random.GMTUnixTime.Unix()))
+	copy(ret.Random[4:], m.Random.RandomBytes[:])
+
+	ret.SessionID = make([]byte, len(m.SessionID))
+	copy(ret.SessionID, m.SessionID)
+
+	ret.CipherSuites = make([]tls.CipherSuiteID, len(m.CipherSuiteIDs))
+	for ix, s := range m.CipherSuiteIDs {
+		ret.CipherSuites[ix] = tls.CipherSuiteID(s)
+	}
+
+	ret.CompressionMethods = make([]tls.CompressionMethod, len(m.CompressionMethods))
+	for ix, m := range m.CompressionMethods {
+		ret.CompressionMethods[ix] = tls.CompressionMethod(m.ID)
+	}
+
+	for _, anyExt := range m.Extensions {
+		switch e := anyExt.(type) {
+		case *extension.ALPN:
+			ret.AlpnProtocols = make([]string, len(e.ProtocolNameList))
+			copy(ret.AlpnProtocols, e.ProtocolNameList)
+		case *extension.UseSRTP:
+		case *extension.ConnectionID:
+			// https://tools.ietf.org/html/rfc9146
+		case *extension.RenegotiationInfo:
+			ret.SecureRenegotiation = true
+		case *extension.ServerName:
+			ret.ServerName = e.ServerName
+		case *extension.SupportedEllipticCurves:
+			ret.SupportedCurves = make([]tls.CurveID, len(e.EllipticCurves))
+			for ix, curve := range e.EllipticCurves {
+				ret.SupportedCurves[ix] = tls.CurveID(curve)
+			}
+		case *extension.SupportedPointFormats:
+			ret.SupportedPoints = make([]tls.PointFormat, len(e.PointFormats))
+			for ix, pointFmt := range e.PointFormats {
+				ret.SupportedPoints[ix] = tls.PointFormat(pointFmt)
+			}
+		case *extension.SupportedSignatureAlgorithms:
+			ret.SignatureAndHashes = make([]tls.SignatureAndHash, len(e.SignatureHashAlgorithms))
+			for ix, sigAlg := range e.SignatureHashAlgorithms {
+				ret.SignatureAndHashes[ix] = tls.SignatureAndHash{
+					Signature: uint8(sigAlg.Signature & 0xff),
+					Hash:      uint8(sigAlg.Hash & 0xff),
+				}
+			}
+		case *extension.UseExtendedMasterSecret:
+			ret.ExtendedMasterSecret = e.Supported
+		default:
+		}
+	}
+	return ret
 }

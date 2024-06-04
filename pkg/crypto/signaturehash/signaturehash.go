@@ -12,8 +12,8 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/pion/dtls/v2/pkg/crypto/hash"
-	"github.com/pion/dtls/v2/pkg/crypto/signature"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/hash"
+	"github.com/scohen-censys/dtls/v2/pkg/crypto/signature"
 )
 
 // Algorithm is a signature/hash algorithm pairs which may be used in

@@ -3,6 +3,8 @@
 
 package handshake
 
+import "github.com/zmap/zcrypto/tls"
+
 // MessageFinished is a DTLS Handshake Message
 // this message is the first one protected with the just
 // negotiated algorithms, keys, and secrets.  Recipients of Finished
@@ -27,4 +29,10 @@ func (m *MessageFinished) Marshal() ([]byte, error) {
 func (m *MessageFinished) Unmarshal(data []byte) error {
 	m.VerifyData = append([]byte{}, data...)
 	return nil
+}
+
+func (m *MessageFinished) MakeLog() *tls.Finished {
+	ret := &tls.Finished{}
+	ret.VerifyData = append([]byte{}, m.VerifyData...)
+	return ret
 }

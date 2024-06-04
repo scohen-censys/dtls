@@ -4,7 +4,9 @@
 package handshake
 
 import (
-	"github.com/pion/dtls/v2/internal/util"
+	"github.com/scohen-censys/dtls/v2/internal/util"
+	"github.com/zmap/zcrypto/tls"
+	"github.com/zmap/zcrypto/x509"
 )
 
 // MessageCertificate is a DTLS Handshake Message
@@ -66,4 +68,23 @@ func (m *MessageCertificate) Unmarshal(data []byte) error {
 	}
 
 	return nil
+}
+
+func (m *MessageCertificate) MakeLog() *tls.Certificates {
+	ret := &tls.Certificates{}
+	for ix, cert := range m.Certificate {
+		if ix == 0 {
+			ret.Certificate.Raw = make([]byte, len(m.Certificate[0]))
+			copy(ret.Certificate.Raw, m.Certificate[0])
+			ret.Certificate.Parsed, _ = x509.ParseCertificate(cert)
+		}
+		if ix >= 1 {
+			parsed, _ := x509.ParseCertificate(cert)
+			ret.Chain = append(ret.Chain, tls.SimpleCertificate{
+				Raw:    append([]byte{}, cert...),
+				Parsed: parsed,
+			})
+		}
+	}
+	return ret
 }

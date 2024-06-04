@@ -8,9 +8,9 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/pion/dtls/v2/internal/util"
-	"github.com/pion/dtls/v2/pkg/protocol"
-	"github.com/pion/dtls/v2/pkg/protocol/recordlayer"
+	"github.com/scohen-censys/dtls/v2/internal/util"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol"
+	"github.com/scohen-censys/dtls/v2/pkg/protocol/recordlayer"
 	"golang.org/x/crypto/cryptobyte"
 )
 
